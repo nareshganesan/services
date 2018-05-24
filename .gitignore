@@ -37,13 +37,14 @@
 ### Go ###
 # Binaries for programs and plugins
 *.exe~
-
+services
 
 ### Go Dep tool ###
 vendor/
 tmp/
 *.lock
 *.log
+*.log.*
 
 # Test binary, build with `go test -c`
 *.test

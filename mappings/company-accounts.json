@@ -1,0 +1,79 @@
+{
+  "mappings": {
+    "accounts": {
+      "properties": {
+        "username": {
+          "type": "keyword"
+        },
+        "password": {
+          "type": "keyword"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "phone": {
+          "type": "keyword"
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "text"
+            },
+            "country": {
+              "type": "text"
+            }
+          }
+        },
+        "name": {
+          "type": "text"
+        },
+        "title": {
+          "type": "text"
+        },
+        "roles": {
+          "type": "keyword"
+        },
+        "verification_token": {
+          "type": "keyword"
+        },
+        "tokentimestamp": {
+          "type": "date"
+        },
+        "created_at": {
+          "type": "date"
+        },
+        "updated_at": {
+          "type": "date"
+        },
+        "created_by": {
+          "type": "keyword"
+        },
+        "updated_by": {
+          "type": "keyword"
+        },
+        "timezone": {
+          "type": "keyword"
+        },
+        "is_archived": {
+          "type": "boolean"
+        },
+        "is_verified": {
+          "type": "boolean"
+        },
+        "is_idp": {
+          "type": "boolean"
+        },
+        "login_attempts": {
+          "type": "integer"
+        },
+        "password_history": {
+          "type": "keyword"
+        },
+        "is_locked": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
