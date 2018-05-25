@@ -17,8 +17,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		l := g.Gbl.Log
 		// get authorization header
 		token := shared.GetAuthorizationHeader(ctx)
-		// usernameOrEmail, password := shared.GetCredentials(ctx)
-		// shared.GetAuthCredentials(ctx)
 		if token != "" {
 			if claims := g.ParseJWT(token); claims != nil {
 				l.Info("Token is valid")
@@ -65,6 +63,8 @@ func AuthDecorator() gin.HandlerFunc {
 				"code":    http.StatusUnauthorized,
 				"status":  http.StatusText(http.StatusUnauthorized),
 			})
+		} else {
+			ctx.Next()
 		}
 	}
 }

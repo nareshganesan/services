@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/gin-gonic/gin"
+	g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
 	"net/http"
 )
@@ -50,8 +51,16 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 			data["message"] = "StatusUnauthorized"
 			data["code"] = http.StatusBadRequest
 		} else {
-			data["account"] = account
-			data["code"] = http.StatusOK
+			token := g.GenerateJWT(account.Username)
+			if token == "" {
+				data["error"] = "Invalid credentials!"
+				data["message"] = "StatusUnauthorized"
+				data["code"] = http.StatusBadRequest
+			} else {
+				data["account"] = account
+				data["code"] = http.StatusOK
+				data["token"] = token
+			}
 		}
 	}
 	return shared.GetResponse(ctx, data)
