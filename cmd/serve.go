@@ -19,7 +19,7 @@ var serveCmd = &cobra.Command{
 Can be configured to run on any port using --port flag`,
 	Run: func(cmd *cobra.Command, args []string) {
 		p := viper.GetString("port")
-		author := viper.GetString("author")
+		author := viper.GetString("owner.name")
 		fmt.Println("Starting API server on port", p)
 		fmt.Println("Author:", author)
 

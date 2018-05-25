@@ -10,7 +10,7 @@ PID_FILE=$(GONAME).pid
 PID=`cat $(PROJECT_ROOT)/$(PID_FILE)`
 port=3333
 
-build: fmt
+build: fmt lint vet
 	@echo "Building $(GOFILES) to ./"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GONAME) $(GOFILES)
 

@@ -1,0 +1,64 @@
+owner:
+  name: Naresh Ganesan <nareshkumarganesan@gmail.com>
+  organization: Company
+  domain: company-domain.com
+
+database:
+  username: appUser
+  password: Services#2018
+  hostname: localhost
+  port: 3306
+  dbname: services
+  parameter: "?parseTime=true&interpolateParams=true"
+  connmax: 5000
+  enabled: true
+  driver: mysql
+
+es:
+  username: elastic
+  password: changeme
+  sniff: true
+  health: 60 # seconds
+  gzip: true
+  retries: 3
+  urls:
+    - http://localhost:9200
+    - http://127.0.0.1:9200
+
+index:
+  accounts:
+    name: company-accounts
+    doctype: accounts
+
+logger:
+  path: logs
+  infofile: info.log
+  errorfile: error.log
+  maxsize: 100 # megabytes
+  maxbackups: 10
+  maxage: 5 # hours
+
+eslogger:
+  path: eslogs
+  infofile: info.log
+  errorfile: error.log
+  maxsize: 100 # megabytes
+  maxbackups: 10
+  maxage: 5  # hours
+
+tokens:
+  auth:
+    secret: RiseAndShine
+    algorithm: HS512
+    maxage: 100 # days
+  email:
+    secret: NeverGiveUp
+    algorithm: HS512
+    maxage: 30 # days 
+
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  toemail:
+    - nareshkumarganesan@gmail.com
+    - karthikasomasundaram94@gmail.com
