@@ -37,7 +37,12 @@ lint:
 vet:
 	@for file in ${LINT_FILES} ;  do \
 		go tool vet $$file ; \
-	done	
+	done
+
+test:
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) \
+	go test ./... -coverprofile=coverage.out; \
+	go tool cover -func=coverage.out 
 
 run:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go run $(GOFILES) serve -p=$(port)
