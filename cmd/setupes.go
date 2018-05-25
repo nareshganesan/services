@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // force create index flag
@@ -45,16 +46,6 @@ func init() {
 	viper.BindPFlag("force", setupesCmd.PersistentFlags().Lookup("force"))
 }
 
-func setup() {
-	// load app config details
-	g.LoadConfig()
-	// Configure Logrus application logger
-	g.ConfigureAPILogger()
-	g.ConfigureESLogger()
-	g.ConfigureDB()
-	g.ConfigureElasticDB()
-}
-
 func getFiles(folderPath string, forceCreate bool) {
 	err := filepath.Walk(folderPath, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -65,7 +56,13 @@ func getFiles(folderPath string, forceCreate bool) {
 			if !f.IsDir() && strings.Contains(f.Name(), ".json") {
 				index := strings.Split(f.Name(), ".")[0]
 				fmt.Printf("creating index: %s mappings: %s\n", index, path)
-				createIndexFromJSON(index, path, forceCreate)
+				now := time.Now().UTC()
+				suffix := fmt.Sprintf("%d%02d%02d", now.Year(), now.Month(), now.Day())
+				suffix = "-" + suffix
+				alias := index
+				newindex := index + suffix
+				createIndexFromJSON(newindex, path, forceCreate)
+				createAlias(newindex, alias, forceCreate)
 			}
 		}
 		return nil
@@ -85,5 +82,19 @@ func createIndexFromJSON(index, mappingsFile string, forceCreate bool) {
 		fmt.Printf("Index: %s Created\n", index)
 	} else {
 		fmt.Printf("Error creating %s index\n", index)
+	}
+}
+
+func createAlias(index, alias string, forceCreate bool) {
+	if index == alias {
+		fmt.Println("Index name and alias cannot be equal!")
+		return
+	}
+	es := g.GetGlobals()
+	status := es.CreateAlias(index, alias, forceCreate)
+	if status {
+		fmt.Printf("alias: %s created for index %s\n", alias, index)
+	} else {
+		fmt.Printf("Error creating alias: %s for index: %s \n", alias, index)
 	}
 }

@@ -272,10 +272,9 @@ func (g *Globals) CreateIndex(index string, mapping interface{}, forceCreate boo
 		}).Error("Error while checking existing index")
 	}
 	if exists && forceCreate {
-		_, err := g.ES.DeleteIndex(index).Do(esCtx)
-		if err != nil {
+		status := g.DeleteIndex(index)
+		if !status {
 			l.WithFields(logrus.Fields{
-				"error":   err,
 				"index":   index,
 				"mapping": mapping,
 			}).Error("Error deleting existing index")
@@ -298,4 +297,120 @@ func (g *Globals) CreateIndex(index string, mapping interface{}, forceCreate boo
 		created = true
 	}
 	return created
+}
+
+// DeleteIndex deletes the index
+func (g *Globals) DeleteIndex(index string) bool {
+	l := Gbl.Log
+	deleted := false
+	esCtx := context.Background()
+	deleteIndex, err := g.ES.DeleteIndex(index).Do(esCtx)
+	if err != nil {
+		// Handle error
+		l.WithFields(logrus.Fields{
+			"error": err,
+			"index": index,
+		}).Error("Error deleting index")
+	}
+	if !deleteIndex.Acknowledged {
+		// Not acknowledged
+		l.WithFields(logrus.Fields{
+			"error": err,
+			"index": index,
+		}).Error("index delete failed!")
+	} else {
+		l.WithFields(logrus.Fields{
+			"index": index,
+		}).Info("index deleted!")
+		deleted = true
+	}
+	return deleted
+}
+
+// CreateAlias method of ES, creates an alias for index
+func (g *Globals) CreateAlias(index, alias string, forceCreate bool) bool {
+	l := Gbl.Log
+	created := false
+	esCtx := context.Background()
+	indexExists, err := g.ES.IndexExists(index).Do(esCtx)
+	if err != nil {
+		l.WithFields(logrus.Fields{
+			"error": err,
+			"index": index,
+		}).Error("Error while checking existing index")
+	}
+	if indexExists {
+		res, err := g.GetAlias(index)
+		if err != nil {
+			l.WithFields(logrus.Fields{
+				"error": err,
+				"index": index,
+			}).Error("Error getting alias for index")
+		} else {
+			if (len(res.IndicesByAlias(alias)) > 0) && !forceCreate {
+				l.Info("Alias exists for index, do not force create")
+				created = true
+				return created
+			} else {
+				if (len(res.IndicesByAlias(alias)) > 0) && forceCreate {
+					l.WithFields(logrus.Fields{
+						"index": index,
+						"alias": alias,
+					}).Info("Force deleting existing alias for index")
+					status, err := g.ES.Alias().
+						Remove(index, alias).
+						// Pretty(true).
+						Do(esCtx)
+					if err != nil {
+						l.WithFields(logrus.Fields{
+							"error": err,
+							"index": index,
+							"alias": alias,
+						}).Error("Error deleting alias for index")
+					}
+					if !status.Acknowledged {
+						l.WithFields(logrus.Fields{
+							"index":        index,
+							"alias":        alias,
+							"status":       status,
+							"acknowledged": status.Acknowledged,
+						}).Error("Alias could not be removed!")
+					} else {
+						l.WithFields(logrus.Fields{
+							"index":        index,
+							"alias":        alias,
+							"status":       status,
+							"acknowledged": status.Acknowledged,
+						}).Info("Existing alias removed!")
+					}
+				}
+				_, err = g.ES.Alias().Add(index, alias).Do(esCtx)
+				if err != nil {
+					l.WithFields(logrus.Fields{
+						"error": err,
+						"index": index,
+						"alias": alias,
+					}).Error("Error creating alias for index")
+				} else {
+					l.WithFields(logrus.Fields{
+						"index": index,
+						"alias": alias,
+					}).Info("alias for index created")
+					created = true
+				}
+			}
+		}
+
+	}
+	return created
+}
+
+// GetAlias retrieves aliases for the index
+func (g *Globals) GetAlias(index string) (*elastic.AliasesResult, error) {
+	esCtx := context.Background()
+	res, err := g.ES.Aliases().Index(index).Do(esCtx)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
