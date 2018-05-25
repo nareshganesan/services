@@ -29,6 +29,10 @@
   branch = "master"
   name = "github.com/DeanThompson/ginpprof"
 
+[[override]]
+  branch = "release-branch.v6"
+  name = "github.com/olivere/elastic.git"
+
 [[constraint]]
   branch = "master"
   name = "github.com/aviddiviner/gin-limit"
