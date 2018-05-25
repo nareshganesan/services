@@ -2,7 +2,7 @@ package account
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	// "context"
 	g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
@@ -34,7 +34,6 @@ func (a *Entity) Create() (string, bool) {
 		return "", false
 	}
 	a.Password = pHash
-	fmt.Println(g.Config.ES.Index.Accounts)
 	doc, err := es.Index(
 		g.Config.ES.Index.Accounts.Name,
 		g.Config.ES.Index.Accounts.DocType, a)

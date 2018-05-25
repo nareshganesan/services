@@ -3,6 +3,7 @@ package globals
 import (
 	"fmt"
 	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
+	"github.com/onrik/logrus/filename"
 	// "github.com/nareshganesan/services/shared"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
@@ -60,6 +61,9 @@ func getLogger(logFolder, infoFile, errorFile string) *logrus.Logger {
 		&logrus.JSONFormatter{},
 	)
 	Log.Hooks.Add(hook)
+	// do not use the filename hook in production!
+	Log.AddHook(filename.NewHook())
+	// Log.AddHook(filename.NewHook())
 	return Log
 }
 

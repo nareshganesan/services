@@ -24,11 +24,10 @@ es:
   urls:
     - http://localhost:9200
     - http://127.0.0.1:9200
-
-index:
-  accounts:
-    name: company-accounts
-    doctype: accounts
+  index:
+    accounts:
+      name: company-accounts
+      doctype: accounts
 
 logger:
   path: logs

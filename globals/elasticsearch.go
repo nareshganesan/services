@@ -351,53 +351,52 @@ func (g *Globals) CreateAlias(index, alias string, forceCreate bool) bool {
 				l.Info("Alias exists for index, do not force create")
 				created = true
 				return created
-			} else {
-				if (len(res.IndicesByAlias(alias)) > 0) && forceCreate {
-					l.WithFields(logrus.Fields{
-						"index": index,
-						"alias": alias,
-					}).Info("Force deleting existing alias for index")
-					status, err := g.ES.Alias().
-						Remove(index, alias).
-						// Pretty(true).
-						Do(esCtx)
-					if err != nil {
-						l.WithFields(logrus.Fields{
-							"error": err,
-							"index": index,
-							"alias": alias,
-						}).Error("Error deleting alias for index")
-					}
-					if !status.Acknowledged {
-						l.WithFields(logrus.Fields{
-							"index":        index,
-							"alias":        alias,
-							"status":       status,
-							"acknowledged": status.Acknowledged,
-						}).Error("Alias could not be removed!")
-					} else {
-						l.WithFields(logrus.Fields{
-							"index":        index,
-							"alias":        alias,
-							"status":       status,
-							"acknowledged": status.Acknowledged,
-						}).Info("Existing alias removed!")
-					}
-				}
-				_, err = g.ES.Alias().Add(index, alias).Do(esCtx)
+			}
+			if (len(res.IndicesByAlias(alias)) > 0) && forceCreate {
+				l.WithFields(logrus.Fields{
+					"index": index,
+					"alias": alias,
+				}).Info("Force deleting existing alias for index")
+				status, err := g.ES.Alias().
+					Remove(index, alias).
+					// Pretty(true).
+					Do(esCtx)
 				if err != nil {
 					l.WithFields(logrus.Fields{
 						"error": err,
 						"index": index,
 						"alias": alias,
-					}).Error("Error creating alias for index")
+					}).Error("Error deleting alias for index")
+				}
+				if !status.Acknowledged {
+					l.WithFields(logrus.Fields{
+						"index":        index,
+						"alias":        alias,
+						"status":       status,
+						"acknowledged": status.Acknowledged,
+					}).Error("Alias could not be removed!")
 				} else {
 					l.WithFields(logrus.Fields{
-						"index": index,
-						"alias": alias,
-					}).Info("alias for index created")
-					created = true
+						"index":        index,
+						"alias":        alias,
+						"status":       status,
+						"acknowledged": status.Acknowledged,
+					}).Info("Existing alias removed!")
 				}
+			}
+			_, err = g.ES.Alias().Add(index, alias).Do(esCtx)
+			if err != nil {
+				l.WithFields(logrus.Fields{
+					"error": err,
+					"index": index,
+					"alias": alias,
+				}).Error("Error creating alias for index")
+			} else {
+				l.WithFields(logrus.Fields{
+					"index": index,
+					"alias": alias,
+				}).Info("alias for index created")
+				created = true
 			}
 		}
 
