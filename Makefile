@@ -9,6 +9,10 @@ PROJECT_ROOT="$(PWD)"
 PID_FILE=$(GONAME).pid
 PID=`cat $(PROJECT_ROOT)/$(PID_FILE)`
 port=3333
+force=false
+
+setup: get
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go run $(GOFILES) setupes -f=$(force)
 
 build: fmt lint vet
 	@echo "Building $(GOFILES) to ./"

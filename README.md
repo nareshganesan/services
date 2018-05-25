@@ -32,7 +32,7 @@ docker-compose -f docker-compose-dev.yml up
 3. The app uses Makefile heavily for build, test and deploy. Makefile to get the dependencies for the app
 ```
 # get golang dependencies
-make get
+make setup
 ```
 4. Run the app
 ```
