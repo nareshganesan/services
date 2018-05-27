@@ -1,7 +1,16 @@
+title: services
+appname: services boiler plate golang app
+
 owner:
   name: Naresh Ganesan <nareshkumarganesan@gmail.com>
   organization: Company
   domain: company-domain.com
+
+env:
+  types:
+    - development
+    - testing
+    - production
 
 database:
   username: appUser
