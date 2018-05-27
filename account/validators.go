@@ -158,8 +158,28 @@ func VDeleteAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response,
 }
 
 // VListAccountRequest validates list account request
-func VListAccountRequest(ctx *gin.Context) (int, int) {
-	page := shared.DefaultInt(ctx, "page", 0)
-	size := shared.DefaultInt(ctx, "size", 10)
-	return page, size
+func VListAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response, url.Values) {
+	validErrs := url.Values{}
+	if invResp, err := shared.ValidateRequest(ctx, obj); err != nil {
+		validErrs.Add("error", err.Error())
+		return invResp, validErrs
+	}
+	user := obj.(*Entity)
+
+	if (user.Username == "") && (user.Email == "") {
+		validErrs.Add("username or email", "username or email is required")
+	}
+	data := make(map[string]interface{})
+	if len(validErrs) > 0 {
+		data["error"] = validErrs
+		data["message"] = "StatusUnauthorized"
+		data["code"] = http.StatusUnauthorized
+		data["status"] = http.StatusText(http.StatusUnauthorized)
+		invResp := &shared.Response{
+			Ctx:  ctx,
+			Data: data,
+		}
+		return invResp, validErrs
+	}
+	return nil, nil
 }
