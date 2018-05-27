@@ -1,7 +1,7 @@
 package account
 
 import (
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -31,10 +31,7 @@ func TestEntityToMapEquality(t *testing.T) {
 	account := getAccountEntity()
 	expected := getAccountMap()
 	actual := EntityToMap(account)
-	if !reflect.DeepEqual(expected, actual) {
-		t.Errorf("TestEntityToMapEquality failed!")
-		t.Fail()
-	}
+	assert.Equal(t, expected, actual)
 }
 
 func TestEntityToMapInEquality(t *testing.T) {
@@ -42,8 +39,5 @@ func TestEntityToMapInEquality(t *testing.T) {
 	account.Name = "name"
 	expected := getAccountMap()
 	actual := EntityToMap(account)
-	if reflect.DeepEqual(expected, actual) {
-		t.Errorf("TestEntityToMapInEquality failed!")
-		t.Fail()
-	}
+	assert.NotEqual(t, expected, actual)
 }
