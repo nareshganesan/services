@@ -10,6 +10,7 @@ import (
 )
 
 var port string
+var env string
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
@@ -23,7 +24,7 @@ Can be configured to run on any port using --port flag`,
 		fmt.Println("Starting API server on port", p)
 		fmt.Println("Author:", author)
 
-		server.Serve(port)
+		server.Serve(port, env)
 	},
 }
 
@@ -35,6 +36,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	serveCmd.PersistentFlags().StringVarP(&port, "port", "p", "3333", "Port number to serve the API (Default: 3333)")
+	serveCmd.PersistentFlags().StringVarP(&env, "env", "e", "development", "Services app environment")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
