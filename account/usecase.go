@@ -69,16 +69,23 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // UpdateAccountUsecase handles the processing for update account request
 func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	id, status := account.Update()
-	if !status {
-		data["error"] = "Could not update User!"
-		data["message"] = "BadRequest"
-		data["code"] = http.StatusBadRequest
+	query := account.GetAuthQuery()
+	if account.IsExistingUser(query) {
+		id, status := account.Update()
+		if !status {
+			data["error"] = "Could not update User!"
+			data["message"] = "BadRequest"
+			data["code"] = http.StatusBadRequest
+		} else {
+			data["username"] = account.Username
+			data["password"] = account.Password
+			data["id"] = id
+			data["code"] = http.StatusOK
+		}
 	} else {
-		data["username"] = account.Username
-		data["password"] = account.Password
-		data["id"] = id
-		data["code"] = http.StatusOK
+		data["error"] = "StatusUnauthorized"
+		data["message"] = "User does not exist!"
+		data["code"] = http.StatusBadRequest
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -86,16 +93,23 @@ func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // DeleteAccountUsecase handles the processing for delete account request
 func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	id, status := account.Delete()
-	if !status {
-		data["error"] = "Could not delete User!"
-		data["message"] = "BadRequest"
-		data["code"] = http.StatusBadRequest
+	query := account.GetAuthQuery()
+	if account.IsExistingUser(query) {
+		id, status := account.Delete()
+		if !status {
+			data["error"] = "Could not delete User!"
+			data["message"] = "BadRequest"
+			data["code"] = http.StatusBadRequest
+		} else {
+			data["username"] = account.Username
+			data["password"] = account.Password
+			data["id"] = id
+			data["code"] = http.StatusOK
+		}
 	} else {
-		data["username"] = account.Username
-		data["password"] = account.Password
-		data["id"] = id
-		data["code"] = http.StatusOK
+		data["error"] = "StatusUnauthorized"
+		data["message"] = "User does not exist!"
+		data["code"] = http.StatusBadRequest
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -103,15 +117,22 @@ func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // ListAccountUsecase handles the processing for list account request
 func ListAccountUsecase(ctx *gin.Context, account Entity, page, size int) *shared.Response {
 	data := make(map[string]interface{})
-	query := GetListAccountQuery()
-	accounts := account.List(page, size, query)
-	if accounts == nil {
-		data["error"] = "Could not list Users!"
-		data["message"] = "BadRequest"
-		data["code"] = http.StatusBadRequest
+	query := account.GetAuthQuery()
+	if account.IsExistingUser(query) {
+		listquery := GetListAccountQuery()
+		accounts := account.List(page, size, listquery)
+		if accounts == nil {
+			data["error"] = "Could not list Users!"
+			data["message"] = "BadRequest"
+			data["code"] = http.StatusBadRequest
+		} else {
+			data["accounts"] = accounts
+			data["code"] = http.StatusOK
+		}
 	} else {
-		data["accounts"] = accounts
-		data["code"] = http.StatusOK
+		data["error"] = "StatusUnauthorized"
+		data["message"] = "User does not exist!"
+		data["code"] = http.StatusBadRequest
 	}
 	return shared.GetResponse(ctx, data)
 }
