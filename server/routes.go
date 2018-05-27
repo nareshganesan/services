@@ -1,10 +1,11 @@
 package server
 
 import (
-	// "fmt"
 	"flag"
+	// "fmt"
 	"github.com/DeanThompson/ginpprof"
 	"github.com/aviddiviner/gin-limit"
+	"os"
 	// "os"
 	"github.com/gin-gonic/gin"
 	"github.com/itsjamie/gin-cors"
@@ -43,6 +44,24 @@ func setup() {
 	}).Info("No of cores")
 }
 
+func setEnv(env string) string {
+	l := g.Gbl.Log
+	var currentEnv string
+	if env == "" && os.Getenv("SERVICES_ENV") == "" {
+		currentEnv = g.Config.Envs.Types[0]
+	} else if env == "" {
+		currentEnv = os.Getenv("SERVICES_ENV")
+	} else if os.Getenv("SERVICES_ENV") == "" {
+		currentEnv = env
+	} else {
+		currentEnv = g.Config.Envs.Types[0]
+	}
+	l.WithFields(logrus.Fields{
+		"ENV": currentEnv,
+	}).Info("Current Env")
+	return currentEnv
+}
+
 func configCORS() cors.Config {
 	cors := cors.Config{
 		Origins:         "*",
@@ -57,9 +76,10 @@ func configCORS() cors.Config {
 }
 
 // Serve method serves the services app api
-func Serve(port string) {
+func Serve(port, env string) {
 	flag.Parse()
-
+	setup()
+	g.Config.CurrentEnv = setEnv(env)
 	// Set Gin to release mode
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -68,7 +88,6 @@ func Serve(port string) {
 	// router.LoadHTMLFiles("static/*")
 	// router.LoadHTMLGlob("templates/*")
 	router.HandleMethodNotAllowed = true
-	setup()
 	// configure middlewares
 	configureMiddlewares(router)
 	// map api handlers

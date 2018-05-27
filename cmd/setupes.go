@@ -3,12 +3,11 @@ package cmd
 import (
 	"fmt"
 	g "github.com/nareshganesan/services/globals"
+	"github.com/nareshganesan/services/shared"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
 	"strings"
-	"time"
 )
 
 // force create index flag
@@ -26,7 +25,18 @@ var setupesCmd = &cobra.Command{
 			string(os.PathSeparator) +
 			"mappings" +
 			string(os.PathSeparator)
-		getFiles(mappingsFolder, forceCreate)
+		// GetFiles(mappingsFolder, forceCreate)
+		indexJsons := shared.GetFiles(mappingsFolder, ".json")
+		for _, f := range indexJsons {
+			path := mappingsFolder + f
+			index := strings.Split(f, ".")[0]
+			alias := index
+			datepattern := "%d%02d%02d"
+			newindex := index + shared.DateString(datepattern)
+			fmt.Printf("creating index: %s mappings: %s\n", index, path)
+			g.Gbl.CreateIndexFromJSON(newindex, path, forceCreate)
+			CreateAlias(newindex, alias, forceCreate)
+		}
 	},
 }
 
@@ -46,46 +56,8 @@ func init() {
 	viper.BindPFlag("force", setupesCmd.PersistentFlags().Lookup("force"))
 }
 
-func getFiles(folderPath string, forceCreate bool) {
-	err := filepath.Walk(folderPath, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Println("Walkpath error")
-			fmt.Println(err)
-		} else {
-
-			if !f.IsDir() && strings.Contains(f.Name(), ".json") {
-				index := strings.Split(f.Name(), ".")[0]
-				fmt.Printf("creating index: %s mappings: %s\n", index, path)
-				now := time.Now().UTC()
-				suffix := fmt.Sprintf("%d%02d%02d", now.Year(), now.Month(), now.Day())
-				suffix = "-" + suffix
-				alias := index
-				newindex := index + suffix
-				createIndexFromJSON(newindex, path, forceCreate)
-				createAlias(newindex, alias, forceCreate)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		fmt.Println("Get Files error")
-		fmt.Printf(err.Error())
-	}
-}
-
-func createIndexFromJSON(index, mappingsFile string, forceCreate bool) {
-	es := g.GetGlobals()
-	var MappingJSON map[string]interface{}
-	g.LoadJSON(mappingsFile, &MappingJSON)
-	status := es.CreateIndex(index, MappingJSON, forceCreate)
-	if status {
-		fmt.Printf("Index: %s Created\n", index)
-	} else {
-		fmt.Printf("Error creating %s index\n", index)
-	}
-}
-
-func createAlias(index, alias string, forceCreate bool) {
+// CreateAlias creates alias for index given index name
+func CreateAlias(index, alias string, forceCreate bool) {
 	if index == alias {
 		fmt.Println("Index name and alias cannot be equal!")
 		return

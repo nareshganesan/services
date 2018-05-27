@@ -13,6 +13,10 @@ type ownerInfo struct {
 	Domain       string
 }
 
+type env struct {
+	Types []string
+}
+
 // databaseInfo config entity
 type databaseInfo struct {
 	Username  string
@@ -101,6 +105,8 @@ type yamlConfig struct {
 	Title       string
 	AppName     string
 	Owner       ownerInfo
+	CurrentEnv  string
+	Envs        env
 	Database    databaseInfo
 	ES          es
 	Logger      loggerInfo
@@ -164,4 +170,34 @@ func (l *esloggerInfo) InfoPath() string {
 // ErrorPath returns Error log file path for ElasticSearch logger
 func (l *esloggerInfo) ErrorPath() string {
 	return l.Path + string(os.PathSeparator) + l.ErrorFile
+}
+
+// InitConfig reads in config file and ENV variables if set.
+func InitConfig(cfgFile string) {
+	if cfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFile)
+	} else {
+		// Find home directory.
+		projectHome, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(projectHome)
+
+		// Search config in home directory with name ".config" (without extension).
+		viper.AddConfigPath(projectHome)
+		viper.SetConfigName(".config")
+		viper.SetConfigType("yaml")
+	}
+
+	viper.AutomaticEnv() // read in environment variables that match
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Println(err)
+	}
 }

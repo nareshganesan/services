@@ -35,32 +35,38 @@ func ConfigureESLogger() {
 
 func getLogger(logFolder, infoFile, errorFile string) *logrus.Logger {
 
-	CreateFolder(logFolder)
-	CreateFile(infoFile)
-	CreateFile(errorFile)
-
-	iwriter, err := rotateLogsWriter(infoFile)
-	if err != nil {
-		fmt.Println("Error configuring info log file.")
-		fmt.Println(err)
+	var Log *logrus.Logger
+	if Config.CurrentEnv != "testing" {
+		CreateFolder(logFolder)
+		CreateFile(infoFile)
+		CreateFile(errorFile)
+		logrus.SetLevel(logrus.InfoLevel)
+		Log = logrus.New()
+		iwriter, err := rotateLogsWriter(infoFile)
+		if err != nil {
+			fmt.Println("Error configuring info log file.")
+			fmt.Println(err)
+		}
+		ewriter, err := rotateLogsWriter(errorFile)
+		if err != nil {
+			fmt.Println("Error configuring error log file.")
+			fmt.Println(err)
+		}
+		// Only log the warning severity or above.
+		hook := lfshook.NewHook(
+			lfshook.WriterMap{
+				logrus.InfoLevel:  iwriter,
+				logrus.ErrorLevel: ewriter,
+			},
+			&logrus.JSONFormatter{},
+		)
+		Log.Hooks.Add(hook)
+	} else {
+		logrus.SetLevel(logrus.ErrorLevel)
+		Log = logrus.New()
+		Log.Out = os.Stdout
 	}
-	ewriter, err := rotateLogsWriter(errorFile)
-	if err != nil {
-		fmt.Println("Error configuring error log file.")
-		fmt.Println(err)
-	}
 
-	// Only log the warning severity or above.
-	logrus.SetLevel(logrus.InfoLevel)
-	Log := logrus.New()
-	hook := lfshook.NewHook(
-		lfshook.WriterMap{
-			logrus.InfoLevel:  iwriter,
-			logrus.ErrorLevel: ewriter,
-		},
-		&logrus.JSONFormatter{},
-	)
-	Log.Hooks.Add(hook)
 	// do not use the filename hook in production!
 	Log.AddHook(filename.NewHook())
 	// Log.AddHook(filename.NewHook())

@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -48,4 +49,12 @@ func VerifyHash(value, hash string) bool {
 	fmt.Println("verifyHash")
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(value))
 	return err == nil
+}
+
+// DateString returns date string given the pattern
+func DateString(pattern string) string {
+	now := time.Now().UTC()
+	suffix := fmt.Sprintf(pattern, now.Year(), now.Month(), now.Day())
+	suffix = "-" + suffix
+	return suffix
 }

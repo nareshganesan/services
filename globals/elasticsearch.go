@@ -406,10 +406,59 @@ func (g *Globals) CreateAlias(index, alias string, forceCreate bool) bool {
 
 // GetAlias retrieves aliases for the index
 func (g *Globals) GetAlias(index string) (*elastic.AliasesResult, error) {
+	l := Gbl.Log
 	esCtx := context.Background()
 	res, err := g.ES.Aliases().Index(index).Do(esCtx)
 	if err != nil {
+		l.WithFields(logrus.Fields{
+			"error": err,
+			"index": index,
+		}).Error("Error getting alias for index")
 		return nil, err
 	}
+	l.WithFields(logrus.Fields{
+		"index": index,
+	}).Info("alias retrieved for index")
 	return res, nil
+}
+
+// DeleteAlias deletes the alias for the index
+func (g *Globals) DeleteAlias(index, alias string) bool {
+	isDeleted := false
+	l := Gbl.Log
+	esCtx := context.Background()
+	res, err := g.ES.Alias().Remove(index, alias).Do(esCtx)
+	if err != nil {
+		l.WithFields(logrus.Fields{
+			"error": err,
+			"index": index,
+			"alias": alias,
+		}).Error("Error deleting alias for index")
+	}
+	if !res.Acknowledged {
+		l.WithFields(logrus.Fields{
+			"index": index,
+			"alias": alias,
+		}).Error("Could not delete alias for index")
+	} else {
+		l.WithFields(logrus.Fields{
+			"index": index,
+			"alias": alias,
+		}).Info("alias for index deleted")
+		isDeleted = true
+	}
+	return isDeleted
+}
+
+// CreateIndexFromJSON creates index from json file, given json file absolute path
+func (g *Globals) CreateIndexFromJSON(index, mappingsFile string, forceCreate bool) {
+	es := GetGlobals()
+	var MappingJSON map[string]interface{}
+	LoadJSON(mappingsFile, &MappingJSON)
+	status := es.CreateIndex(index, MappingJSON, forceCreate)
+	if status {
+		fmt.Printf("Index: %s Created\n", index)
+	} else {
+		fmt.Printf("Error creating %s index\n", index)
+	}
 }
