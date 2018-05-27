@@ -1,9 +1,8 @@
 package account
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	g "github.com/nareshganesan/services/globals"
+	"github.com/nareshganesan/services/shared"
 )
 
 // Signup handler for signup request
@@ -20,8 +19,6 @@ func Signup(ctx *gin.Context) {
 
 // Login handler for login request
 func Login(ctx *gin.Context) {
-	Gbl := g.GetGlobals()
-	fmt.Println(Gbl)
 	var account Entity
 	if invResp, errs := VLoginRequest(ctx, &account); len(errs) > 0 {
 		invResp.Send()
@@ -59,7 +56,12 @@ func DeleteAccount(ctx *gin.Context) {
 // ListAccount handler for list account request
 func ListAccount(ctx *gin.Context) {
 	account := Entity{}
-	page, size := VListAccountRequest(ctx)
+	page := shared.DefaultInt(ctx, "page", 0)
+	size := shared.DefaultInt(ctx, "size", 10)
+	if invResp, errs := VListAccountRequest(ctx, &account); len(errs) > 0 {
+		invResp.Send()
+		return
+	}
 	resp := ListAccountUsecase(ctx, account, page, size)
 	resp.Send()
 	return
