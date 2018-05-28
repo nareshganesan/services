@@ -128,7 +128,6 @@ func DeleteTestIndex(mappingsFolder string) {
 
 func CreateTestAccount() {
 	var account Entity
-	account.Username = "testusername1"
 	account.Email = "test1@email.com"
 	account.Password = "Testpassword#123"
 	id, status := account.Create()

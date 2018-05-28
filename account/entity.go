@@ -63,7 +63,7 @@ func (a *Entity) Update() (string, bool) {
 	doc, err := es.Update(
 		g.Config.ES.Index.Accounts.Name,
 		g.Config.ES.Index.Accounts.DocType,
-		a.AccountID, data)
+		a.ID, data)
 	if err != nil {
 		return "", false
 	}
@@ -73,11 +73,13 @@ func (a *Entity) Update() (string, bool) {
 // Delete for account entity
 func (a *Entity) Delete() (string, bool) {
 	es := g.GetGlobals()
-	a.IsArchived = true
-	data := EntityToMap(a)
+	var delAcc Entity
+	delAcc.ID = a.ID
+	delAcc.IsArchived = true
+	data := EntityToMap(&delAcc)
 	doc, err := es.Delete(
 		g.Config.ES.Index.Accounts.Name,
-		g.Config.ES.Index.Accounts.DocType, a.AccountID, data)
+		g.Config.ES.Index.Accounts.DocType, delAcc.ID, data)
 	if err != nil {
 		return "", false
 	}
@@ -86,7 +88,8 @@ func (a *Entity) Delete() (string, bool) {
 
 // IsExistingUser method, identifies if accountcredentials given in the query
 // and returns true if exists else false
-func (a *Entity) IsExistingUser(query elastic.Query) bool {
+func (a *Entity) IsExistingUser() bool {
+	query := GetSearchByFieldQuery("email", a.Email)
 	isExisting := false
 	existingAccount := a.FetchOne(query)
 	if existingAccount == nil {
@@ -185,37 +188,10 @@ func (a *Entity) FetchOne(query elastic.Query) *Entity {
 	return &account
 }
 
-// GetAuthField returns field used for authenticating account entity in context
-func (a *Entity) GetAuthField() string {
-	authField := ""
-	if a.Username != "" && a.Email != "" {
-		authField = "email"
-	} else if a.Email != "" {
-		authField = "email"
-	} else if a.Username != "" {
-		authField = "username"
-	} else {
-		authField = ""
-	}
-	return authField
-}
-
-// GetAuthQuery returns authentication query for the account entity
-// Account entity uses username or email field
-func (a *Entity) GetAuthQuery() *elastic.TermQuery {
-	field := a.GetAuthField()
-	if field == "" {
-		return nil
-	} else if field == "username" {
-		return GetSearchByFieldQuery("username", a.Username)
-	} else {
-		return GetSearchByFieldQuery("email", a.Email)
-	}
-}
-
 // Authenticate authenticates account entity
 // using auth query
-func (a *Entity) Authenticate(query elastic.Query) bool {
+func (a *Entity) Authenticate() bool {
+	query := GetSearchByFieldQuery("email", a.Email)
 	isAuthenticated := false
 	existingAccount := a.FetchOne(query)
 	if existingAccount == nil {
@@ -223,6 +199,8 @@ func (a *Entity) Authenticate(query elastic.Query) bool {
 	} else {
 		if shared.VerifyHash(a.Password, existingAccount.Password) {
 			isAuthenticated = true
+			a.ID = existingAccount.ID
+			a.AccountID = existingAccount.AccountID
 		} else {
 			isAuthenticated = false
 		}

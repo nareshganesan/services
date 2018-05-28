@@ -15,7 +15,7 @@ func EntityToMap(account *Entity) *map[string]interface{} {
 		fieldName := shared.GetSnakeCase(fieldType.Field(i).Name)
 		fieldValue := fields.Field(i).Interface()
 		if !strings.Contains(strings.ToLower(fieldType.Field(i).Name), "id") {
-			{
+			if fieldValue != "" {
 				data[fieldName] = fieldValue
 			}
 		}

@@ -10,28 +10,21 @@ import (
 // SignupUsecase handles the processing for signup request
 func SignupUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	query := account.GetAuthQuery()
-	if query == nil {
-		data["error"] = "Could not create User!"
-		data["message"] = "BadReques"
+	if account.IsExistingUser() {
+		data["error"] = "User already exists!"
+		data["message"] = "BadRequest"
 		data["code"] = http.StatusUnauthorized
 	} else {
-		if account.IsExistingUser(query) {
-			data["error"] = "User already exists!"
+		id, status := account.Create()
+		if !status {
+			data["error"] = "Could not create User!"
 			data["message"] = "BadRequest"
-			data["code"] = http.StatusUnauthorized
+			data["code"] = http.StatusBadRequest
 		} else {
-			id, status := account.Create()
-			if !status {
-				data["error"] = "Could not create User!"
-				data["message"] = "BadRequest"
-				data["code"] = http.StatusBadRequest
-			} else {
-				data["username"] = account.Username
-				data["password"] = account.Password
-				data["id"] = id
-				data["code"] = http.StatusOK
-			}
+			data["username"] = account.Username
+			data["password"] = account.Password
+			data["id"] = id
+			data["code"] = http.StatusOK
 		}
 	}
 	return shared.GetResponse(ctx, data)
@@ -40,27 +33,20 @@ func SignupUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // LoginUsecase handles the processing for login request
 func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	query := account.GetAuthQuery()
-	if query == nil {
+	if !account.Authenticate() {
 		data["error"] = "Invalid credentials!"
 		data["message"] = "StatusUnauthorized"
-		data["code"] = http.StatusUnauthorized
+		data["code"] = http.StatusBadRequest
 	} else {
-		if !account.Authenticate(query) {
+		token := g.GenerateJWT(account.ID)
+		if token == "" {
 			data["error"] = "Invalid credentials!"
 			data["message"] = "StatusUnauthorized"
 			data["code"] = http.StatusBadRequest
 		} else {
-			token := g.GenerateJWT(account.Username)
-			if token == "" {
-				data["error"] = "Invalid credentials!"
-				data["message"] = "StatusUnauthorized"
-				data["code"] = http.StatusBadRequest
-			} else {
-				data["account"] = account
-				data["code"] = http.StatusOK
-				data["token"] = token
-			}
+			data["account"] = account
+			data["code"] = http.StatusOK
+			data["token"] = token
 		}
 	}
 	return shared.GetResponse(ctx, data)
@@ -69,23 +55,17 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // UpdateAccountUsecase handles the processing for update account request
 func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	query := account.GetAuthQuery()
-	if account.IsExistingUser(query) {
-		id, status := account.Update()
-		if !status {
-			data["error"] = "Could not update User!"
-			data["message"] = "BadRequest"
-			data["code"] = http.StatusBadRequest
-		} else {
-			data["username"] = account.Username
-			data["password"] = account.Password
-			data["id"] = id
-			data["code"] = http.StatusOK
-		}
-	} else {
-		data["error"] = "StatusUnauthorized"
-		data["message"] = "User does not exist!"
+	account.ID = ctx.GetString("uid")
+	id, status := account.Update()
+	if !status {
+		data["error"] = "Could not update User!"
+		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
+	} else {
+		data["username"] = account.Username
+		data["password"] = account.Password
+		data["id"] = id
+		data["code"] = http.StatusOK
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -93,23 +73,17 @@ func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // DeleteAccountUsecase handles the processing for delete account request
 func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
-	query := account.GetAuthQuery()
-	if account.IsExistingUser(query) {
-		id, status := account.Delete()
-		if !status {
-			data["error"] = "Could not delete User!"
-			data["message"] = "BadRequest"
-			data["code"] = http.StatusBadRequest
-		} else {
-			data["username"] = account.Username
-			data["password"] = account.Password
-			data["id"] = id
-			data["code"] = http.StatusOK
-		}
-	} else {
-		data["error"] = "StatusUnauthorized"
-		data["message"] = "User does not exist!"
+	account.ID = ctx.GetString("uid")
+	id, status := account.Delete()
+	if !status {
+		data["error"] = "Could not delete User!"
+		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
+	} else {
+		data["username"] = account.Username
+		data["password"] = account.Password
+		data["id"] = id
+		data["code"] = http.StatusOK
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -117,22 +91,16 @@ func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 // ListAccountUsecase handles the processing for list account request
 func ListAccountUsecase(ctx *gin.Context, account Entity, page, size int) *shared.Response {
 	data := make(map[string]interface{})
-	query := account.GetAuthQuery()
-	if account.IsExistingUser(query) {
-		listquery := GetListAccountQuery()
-		accounts := account.List(page, size, listquery)
-		if accounts == nil {
-			data["error"] = "Could not list Users!"
-			data["message"] = "BadRequest"
-			data["code"] = http.StatusBadRequest
-		} else {
-			data["accounts"] = accounts
-			data["code"] = http.StatusOK
-		}
-	} else {
-		data["error"] = "StatusUnauthorized"
-		data["message"] = "User does not exist!"
+	listquery := GetListAccountQuery()
+	account.ID = ctx.GetString("uid")
+	accounts := account.List(page, size, listquery)
+	if accounts == nil {
+		data["error"] = "Could not list Users!"
+		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
+	} else {
+		data["accounts"] = accounts
+		data["code"] = http.StatusOK
 	}
 	return shared.GetResponse(ctx, data)
 }

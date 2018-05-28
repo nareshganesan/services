@@ -19,8 +19,8 @@ func VRegisterRequest(ctx *gin.Context, obj interface{}) (*shared.Response, url.
 	}
 	user := obj.(*Entity)
 
-	if (user.Username == "") && (user.Email == "") {
-		validErrs.Add("username or email", "username or email is required")
+	if user.Email == "" {
+		validErrs.Add("email", "email is required")
 	}
 	if user.Password == "" {
 		validErrs.Add("password", "password is required")
@@ -79,8 +79,8 @@ func VLoginRequest(ctx *gin.Context, obj interface{}) (*shared.Response, url.Val
 	}
 	user := obj.(*Entity)
 
-	if (user.Username == "") && (user.Email == "") {
-		validErrs.Add("username or email", "username or email is required")
+	if user.Email == "" {
+		validErrs.Add("email", "email is required")
 	}
 	if user.Password == "" {
 		validErrs.Add("password", "password is required")
@@ -110,10 +110,7 @@ func VUpdateAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response,
 	user := obj.(*Entity)
 
 	if (user.Username == "") && (user.Email == "") {
-		validErrs.Add("username or email", "username or email is required")
-	}
-	if user.AccountID == "" {
-		validErrs.Add("accountId", "accountId is required")
+		validErrs.Add("email", "email is required")
 	}
 	data := make(map[string]interface{})
 	if len(validErrs) > 0 {
@@ -139,8 +136,8 @@ func VDeleteAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response,
 	}
 	user := obj.(*Entity)
 
-	if user.AccountID == "" {
-		validErrs.Add("accountId", "accountId is required")
+	if user.Email == "" {
+		validErrs.Add("email", "email is required")
 	}
 	data := make(map[string]interface{})
 	if len(validErrs) > 0 {
@@ -166,8 +163,8 @@ func VListAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response, u
 	}
 	user := obj.(*Entity)
 
-	if (user.Username == "") && (user.Email == "") {
-		validErrs.Add("username or email", "username or email is required")
+	if user.Email == "" {
+		validErrs.Add("email", "email is required")
 	}
 	data := make(map[string]interface{})
 	if len(validErrs) > 0 {

@@ -40,7 +40,7 @@ func GetAuthorizationHeader(ctx *gin.Context) string {
 		tokenVal := strings.Fields(authHeader)
 		if len(tokenVal) > 1 {
 			token := tokenVal[1]
-			l.Error("Auhorization token is present in header!")
+			l.Info("Auhorization token is present in header!")
 			return token
 		} else if len(tokenVal) > 0 {
 			l.Error("Auhorization token is broken! (no Bearer present)")
@@ -50,7 +50,7 @@ func GetAuthorizationHeader(ctx *gin.Context) string {
 			return ""
 		}
 	} else {
-		l.Info("Authorization header / token is not present")
+		l.Error("Authorization header / token is not present")
 		return ""
 	}
 }

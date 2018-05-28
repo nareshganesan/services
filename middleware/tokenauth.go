@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
@@ -15,21 +15,33 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		l := g.Gbl.Log
+		var auth Entity
 		// get authorization header
 		token := shared.GetAuthorizationHeader(ctx)
+		auth.token = token
 		if token != "" {
 			if claims := g.ParseJWT(token); claims != nil {
 				l.Info("Token is valid")
 				uid := (*claims)["uid"].(string)
-				// uid := int(uidFloat)
-				ctx.Set("uid", uid)
-				ctx.Set("isAuthenticated", "true")
-				ctx.Writer.Header().Set("Authorization", "Bearer "+token)
-				l.WithFields(logrus.Fields{
-					"uid":             uid,
-					"isAuthenticated": strconv.FormatBool(true),
-					"token":           token,
-				}).Info("User Authenticated")
+				auth.id = uid
+				fmt.Println(auth)
+				if !auth.GetByID() {
+					l.WithFields(logrus.Fields{
+						"token": token,
+					}).Info("Token is invalid")
+					ctx.Set("isAuthenticated", "false")
+					ctx.Set("authStatus", "is invalid")
+				} else {
+					// uid := int(uidFloat)
+					ctx.Set("uid", uid)
+					ctx.Set("isAuthenticated", "true")
+					ctx.Writer.Header().Set("Authorization", "Bearer "+token)
+					l.WithFields(logrus.Fields{
+						"uid":             uid,
+						"isAuthenticated": strconv.FormatBool(true),
+						"token":           token,
+					}).Info("User Authenticated")
+				}
 			} else {
 				l.WithFields(logrus.Fields{
 					"token": token,
@@ -67,4 +79,22 @@ func AuthDecorator() gin.HandlerFunc {
 			ctx.Next()
 		}
 	}
+}
+
+// Entity used for token authentication
+type Entity struct {
+	token string
+	id    string
+}
+
+// GetByID for token entity.
+func (a *Entity) GetByID() bool {
+	es := g.GetGlobals()
+	_, err := es.Get(
+		g.Config.ES.Index.Accounts.Name,
+		g.Config.ES.Index.Accounts.DocType, a.id)
+	if err != nil {
+		return false
+	}
+	return true
 }
