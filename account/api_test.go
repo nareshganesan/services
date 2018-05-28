@@ -152,3 +152,17 @@ func TestSignupEmptyPassword(t *testing.T) {
 	assert.Equal(t, expected, w.Code)
 
 }
+
+func TestSignupInvalidData(t *testing.T) {
+
+	// Create a response recorder
+	w := httptest.NewRecorder()
+	r := GetRouter(true)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBufferString("\"foo\":\"bar\", \"bar\":\"foo\"}"))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	r.ServeHTTP(w, req)
+	expected := http.StatusUnauthorized
+	assert.Equal(t, expected, w.Code)
+
+}
