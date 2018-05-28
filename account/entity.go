@@ -3,7 +3,6 @@ package account
 import (
 	"encoding/json"
 	// "fmt"
-	// "context"
 	g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
 	"github.com/olivere/elastic"
@@ -12,6 +11,7 @@ import (
 
 // Entity for account index
 type Entity struct {
+	ID                string `json: "_id"`
 	Username          string `form:"username" json:"username"`
 	Email             string `form:"email" json:"email"`
 	Password          string `form:"password" json:"password"`
@@ -120,6 +120,11 @@ func (a *Entity) List(page, size int, query elastic.Query) []Entity {
 				"error": err,
 			}).Error("Failed to unmarshal account result")
 		}
+		l.WithFields(logrus.Fields{
+			"account": *hit.Source,
+		}).Info("account details")
+		account.ID = hit.Id
+		account.AccountID = hit.Id
 		accounts[idx] = account
 	}
 	return accounts
@@ -149,6 +154,8 @@ func (a *Entity) Search(page, size int, query elastic.Query) []Entity {
 				"error": err,
 			}).Error("Failed to unmarshal account result")
 		}
+		account.ID = hit.Id
+		account.AccountID = hit.Id
 		accounts[idx] = account
 	}
 	return accounts
@@ -173,6 +180,8 @@ func (a *Entity) FetchOne(query elastic.Query) *Entity {
 			"error": err,
 		}).Error("Failed to unmarshal account result")
 	}
+	account.ID = hit.Id
+	account.AccountID = hit.Id
 	return &account
 }
 
