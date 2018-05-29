@@ -60,6 +60,7 @@ tokens:
     secret: RiseAndShine
     algorithm: HS512
     maxage: 100 # days
+    attempts: 5 # allowed failed attempts
   email:
     secret: NeverGiveUp
     algorithm: HS512

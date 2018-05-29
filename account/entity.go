@@ -244,19 +244,19 @@ func (a *Entity) loginAttempts() {
 	} else {
 		a.FailedAttempts = 1
 	}
-	if a.FailedAttempts > 5 {
+	if a.FailedAttempts > g.Config.Tokens.Auth.Attempts {
 		l.Error("Account is locked")
-	} else if a.FailedAttempts == 5 {
+	} else if a.FailedAttempts == g.Config.Tokens.Auth.Attempts {
 		a.IsLocked = true
 		a.IsVerified = false
 		l.WithFields(logrus.Fields{
 			"failedattempts": a.FailedAttempts,
-			"maxattempts":    5,
+			"maxattempts":    g.Config.Tokens.Auth.Attempts,
 		}).Error("No of failed attempts exceeded maximum allowed attempts!")
 	}
 	l.WithFields(logrus.Fields{
 		"failedattempts":     a.FailedAttempts,
-		"maxattempts":        5,
-		"remaining attempts": (5 - a.FailedAttempts),
+		"maxattempts":        g.Config.Tokens.Auth.Attempts,
+		"remaining attempts": (g.Config.Tokens.Auth.Attempts - a.FailedAttempts),
 	}).Error("No of failed attempts exceeded maximum allowed attempts!")
 }

@@ -87,6 +87,7 @@ type auth struct {
 	Secret    string
 	Algorithm string
 	Maxage    int // no of days
+	Attempts  int
 }
 
 // email token config entity
