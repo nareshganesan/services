@@ -7,8 +7,8 @@ import (
 	mw "github.com/nareshganesan/services/middleware"
 	"github.com/nareshganesan/services/shared"
 	"github.com/olivere/elastic"
-	// "github.com/spf13/viper"
 	"os"
+	// "github.com/spf13/viper"
 	"strings"
 	"testing"
 )
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	fmt.Println("Setup for account package of services app")
-	projectRoot := "/home/ng/company/go/src/github.com/nareshganesan/services"
+	projectRoot := string(os.Getenv("GOPATH")) + "/src/github.com/nareshganesan/services"
 	cfgFile = projectRoot + string(os.PathSeparator) + ".config.yaml"
 	g.InitConfig(cfgFile)
 	g.LoadConfig()
@@ -39,13 +39,13 @@ func setup() {
 	// Configure Logrus application logger
 	g.ConfigureAPILogger()
 	g.ConfigureESLogger()
-	g.Gbl.ES = MockESService("http://localhost:9200")
+	g.Gbl.ES = MockESService(g.Config.ES.Urls[0])
 	CreateTestIndex(mappingsFolder)
 }
 
 func teardown() {
 	fmt.Println("teardown for account package of services app")
-	projectRoot := "/home/ng/company/go/src/github.com/nareshganesan/services"
+	projectRoot := string(os.Getenv("GOPATH")) + "/src/github.com/nareshganesan/services"
 	g.Config.ProjectRoot = projectRoot
 	g.Config.ProjectRoot = projectRoot
 	mappingsFolder := g.Config.ProjectRoot +

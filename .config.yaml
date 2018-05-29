@@ -14,8 +14,8 @@ env:
     - production
 
 database:
-  username: travis
-  password: 
+  username: appUser
+  password: Services#2018
   hostname: "0.0.0.0"
   port: 3306
   dbname: services
