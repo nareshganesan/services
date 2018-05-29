@@ -11,6 +11,7 @@ type ownerInfo struct {
 	Name         string
 	Organization string
 	Domain       string
+	Email        string
 }
 
 type env struct {

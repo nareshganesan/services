@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
@@ -21,7 +22,7 @@ func SignupUsecase(ctx *gin.Context, account Entity) *shared.Response {
 			data["message"] = "BadRequest"
 			data["code"] = http.StatusBadRequest
 		} else {
-			data["username"] = account.Username
+			data["email"] = account.Email
 			data["password"] = account.Password
 			data["id"] = id
 			data["code"] = http.StatusOK
@@ -34,8 +35,21 @@ func SignupUsecase(ctx *gin.Context, account Entity) *shared.Response {
 func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
 	if !account.Authenticate() {
-		data["error"] = "Invalid credentials!"
-		data["message"] = "StatusUnauthorized"
+		adminEmail := g.Config.Owner.Email
+		if account.IsArchived {
+			data["message"] = fmt.Sprintf("Account archived! contact %s to unlock it", adminEmail)
+		} else {
+			if !account.IsLocked {
+				if account.FailedAttempts == 5 {
+					data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
+				} else {
+					data["message"] = fmt.Sprintf("Invalid Credentials!, failed attempt:%d, maximum allowed:%d!", account.FailedAttempts, 5)
+				}
+			} else {
+				data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
+			}
+		}
+		data["error"] = "StatusUnauthorized!"
 		data["code"] = http.StatusBadRequest
 	} else {
 		token := g.GenerateJWT(account.ID)
@@ -56,13 +70,14 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
 	account.ID = ctx.GetString("uid")
+	account.IsVerified = true
 	id, status := account.Update()
 	if !status {
 		data["error"] = "Could not update User!"
 		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
 	} else {
-		data["username"] = account.Username
+		data["email"] = account.Email
 		data["password"] = account.Password
 		data["id"] = id
 		data["code"] = http.StatusOK
@@ -80,7 +95,7 @@ func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
 	} else {
-		data["username"] = account.Username
+		data["email"] = account.Email
 		data["password"] = account.Password
 		data["id"] = id
 		data["code"] = http.StatusOK

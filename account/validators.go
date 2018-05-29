@@ -108,8 +108,7 @@ func VUpdateAccountRequest(ctx *gin.Context, obj interface{}) (*shared.Response,
 		return invResp, validErrs
 	}
 	user := obj.(*Entity)
-
-	if (user.Username == "") && (user.Email == "") {
+	if user.Email == "" {
 		validErrs.Add("email", "email is required")
 	}
 	data := make(map[string]interface{})

@@ -5,6 +5,7 @@ owner:
   name: Naresh Ganesan <nareshkumarganesan@gmail.com>
   organization: Company
   domain: company-domain.com
+  email: admin@email.com
 
 env:
   types:

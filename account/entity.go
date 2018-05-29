@@ -11,17 +11,17 @@ import (
 
 // Entity for account index
 type Entity struct {
-	ID                string `json: "_id"`
-	Username          string `form:"username" json:"username"`
+	ID                string
 	Email             string `form:"email" json:"email"`
 	Password          string `form:"password" json:"password"`
-	AccountID         string `form:"accountId" json:"accountId"`
 	Name              string `form:"name" json:"name,omitempty"`
 	Title             string `form:"title" json:"title,omitempty"`
 	Roles             string `form:"roles" json:"roles,omitempty"`
 	VerificationToken string `form:"verification_token" json:"verification_token,omitempty"`
-	IsArchived        bool   `form:"is_archived" json:"is_archived"`
-	IsVerified        bool   `form:"is_verified" json:"is_verified"`
+	IsArchived        bool   `form:"is_archived" json:"is_archived" binding:"omitempty"`
+	IsVerified        bool   `form:"is_verified" json:"is_verified" binding:"omitempty"`
+	IsLocked          bool   `json:"is_locked" binding:"omitempty"`
+	FailedAttempts    int    `json:"failed_attempts" binding:"omitempty"`
 }
 
 // Create for account entity
@@ -29,6 +29,7 @@ func (a *Entity) Create() (string, bool) {
 	es := g.GetGlobals()
 	a.IsVerified = true
 	a.IsArchived = false
+	a.IsLocked = false
 	pHash, err := shared.GetHash(a.Password)
 	if err != nil {
 		return "", false
@@ -48,7 +49,7 @@ func (a *Entity) GetByID() bool {
 	es := g.GetGlobals()
 	_, err := es.Get(
 		g.Config.ES.Index.Accounts.Name,
-		g.Config.ES.Index.Accounts.DocType, a.AccountID)
+		g.Config.ES.Index.Accounts.DocType, a.ID)
 	if err != nil {
 		return false
 	}
@@ -58,7 +59,7 @@ func (a *Entity) GetByID() bool {
 // Update for account entity
 func (a *Entity) Update() (string, bool) {
 	es := g.GetGlobals()
-	a.IsVerified = true
+	// a.IsVerified = true
 	data := EntityToMap(a)
 	doc, err := es.Update(
 		g.Config.ES.Index.Accounts.Name,
@@ -127,7 +128,6 @@ func (a *Entity) List(page, size int, query elastic.Query) []Entity {
 			"account": *hit.Source,
 		}).Info("account details")
 		account.ID = hit.Id
-		account.AccountID = hit.Id
 		accounts[idx] = account
 	}
 	return accounts
@@ -158,7 +158,6 @@ func (a *Entity) Search(page, size int, query elastic.Query) []Entity {
 			}).Error("Failed to unmarshal account result")
 		}
 		account.ID = hit.Id
-		account.AccountID = hit.Id
 		accounts[idx] = account
 	}
 	return accounts
@@ -184,26 +183,78 @@ func (a *Entity) FetchOne(query elastic.Query) *Entity {
 		}).Error("Failed to unmarshal account result")
 	}
 	account.ID = hit.Id
-	account.AccountID = hit.Id
 	return &account
 }
 
 // Authenticate authenticates account entity
 // using auth query
 func (a *Entity) Authenticate() bool {
+	es := g.GetGlobals()
+	l := es.Log
 	query := GetSearchByFieldQuery("email", a.Email)
 	isAuthenticated := false
 	existingAccount := a.FetchOne(query)
 	if existingAccount == nil {
 		isAuthenticated = false
+		// either there are multiple accounts or no accounts
+		// fetchone returns nil if results > 1 or results == 0
+		l.Error("Account does not exist")
 	} else {
-		if shared.VerifyHash(a.Password, existingAccount.Password) {
-			isAuthenticated = true
-			a.ID = existingAccount.ID
-			a.AccountID = existingAccount.AccountID
+		if existingAccount.IsArchived {
+			l.Error("Account is archived")
 		} else {
-			isAuthenticated = false
+			l.Info("Account is not archived")
+			if !existingAccount.IsLocked {
+				l.Info("Account is not locked")
+				if shared.VerifyHash(a.Password, existingAccount.Password) {
+					if existingAccount.IsVerified {
+						l.Info("Account is verified")
+						isAuthenticated = true
+						existingAccount.FailedAttempts = 0
+						existingAccount.Update()
+					} else {
+						l.Error("Account is not verified")
+					}
+				} else {
+					l.Info("Account is locked")
+					existingAccount.loginAttempts()
+					existingAccount.Update()
+				}
+			} else {
+				l.Info("Account is locked")
+			}
 		}
 	}
+	a.ID = existingAccount.ID
+	a.IsArchived = existingAccount.IsArchived
+	a.IsLocked = existingAccount.IsLocked
+	a.FailedAttempts = existingAccount.FailedAttempts
 	return isAuthenticated
+}
+
+// loginAttempts calculates the no of failed login attempts
+func (a *Entity) loginAttempts() {
+	es := g.GetGlobals()
+	l := es.Log
+	attempts := a.FailedAttempts
+	if attempts > 0 {
+		a.FailedAttempts++
+	} else {
+		a.FailedAttempts = 1
+	}
+	if a.FailedAttempts > 5 {
+		l.Error("Account is locked")
+	} else if a.FailedAttempts == 5 {
+		a.IsLocked = true
+		a.IsVerified = false
+		l.WithFields(logrus.Fields{
+			"failedattempts": a.FailedAttempts,
+			"maxattempts":    5,
+		}).Error("No of failed attempts exceeded maximum allowed attempts!")
+	}
+	l.WithFields(logrus.Fields{
+		"failedattempts":     a.FailedAttempts,
+		"maxattempts":        5,
+		"remaining attempts": (5 - a.FailedAttempts),
+	}).Error("No of failed attempts exceeded maximum allowed attempts!")
 }

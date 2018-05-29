@@ -1,6 +1,8 @@
 package account
 
 import (
+	// "fmt"
+	// g "github.com/nareshganesan/services/globals"
 	"github.com/nareshganesan/services/shared"
 	"reflect"
 	"strings"
@@ -8,6 +10,8 @@ import (
 
 // EntityToMap converts account entity map[string]interface object
 func EntityToMap(account *Entity) *map[string]interface{} {
+	// es := g.GetGlobals()
+	// l := es.Log
 	data := make(map[string]interface{})
 	fields := reflect.ValueOf(account).Elem()
 	fieldType := fields.Type()
@@ -20,5 +24,9 @@ func EntityToMap(account *Entity) *map[string]interface{} {
 			}
 		}
 	}
+	// use it only for debugging
+	// l.WithFields(logrus.Fields{
+	// 	"data": data,
+	// }).Info("account entity to map")
 	return &data
 }

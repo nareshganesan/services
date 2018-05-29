@@ -7,7 +7,6 @@ import (
 
 func getAccountEntity() *Entity {
 	var account Entity
-	account.Username = "username"
 	account.Email = "email@email.com"
 	account.Password = "password"
 	account.IsArchived = false
@@ -17,7 +16,6 @@ func getAccountEntity() *Entity {
 
 func getAccountMap() *map[string]interface{} {
 	expected := make(map[string]interface{})
-	expected["username"] = "username"
 	expected["email"] = "email@email.com"
 	expected["password"] = "password"
 	expected["is_archived"] = false

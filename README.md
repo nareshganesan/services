@@ -2,6 +2,53 @@
 
 Boiler plate golang micro services app built with Gin, ElasticSearch, MySQL, Cobra, Viper, Docker-compose
 
+### Features
+- [X] Modular request flow - 
+  - [X] handlers
+  - [X] validators
+  - [X] usecases
+  - [X] entity
+  - [ ] serialiser
+  - [X] response
+- [X] Authentication
+	- [ ] Social auth
+	- [X] lock on exceeding maximum attempts (5) - configurable
+- [ ] Notifications - (NSQ)
+	- [ ] Email
+	- [ ] SMS
+- [ ] Cache API
+	- [ ] Redis
+- [X] Logging API - Logrus
+- [X] Unit + Integration testcase
+- [X] Code coverage
+- [ ] CI - Travis CI
+
+### Tools
+- [X] Cobra command cli apps
+- [X] Viper configuration management
+- [X] ElasticSearch 
+	- [X] CRUD API
+	- [X] flexible search querying using [elastic]
+	- [ ] Aggregate queries
+	- [ ] Geo distance queries
+	- [X] Index management using JSON
+- [ ] MySQL
+	- [ ] CRUD API
+	- [ ] Install scripts
+	- [ ] Management scripts - backup, Point in time recovery
+	- [ ] Monitoring API
+- [X] Makefile commands 
+	- [X] build
+	- [X] install
+	- [X] run
+	- [X] format
+	- [X] lint
+	- [X] vet
+	- [X] test
+- [ ] Postman collections
+- [ ] Distributed task queue (NSQ)
+- [ ] Logstash + filebeats setup for log filtering and analysis
+
 ## Pre-requisites
 
 1. MySQL should be installed 
@@ -60,3 +107,8 @@ Go install
 ```
 make install
 ```
+
+
+[//]: # (reference links here)
+
+[elastic]: <https://olivere.github.io/elastic/>
