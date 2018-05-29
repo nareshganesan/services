@@ -10,7 +10,9 @@ func getAccountEntity() *Entity {
 	account.Email = "email@email.com"
 	account.Password = "password"
 	account.IsArchived = false
-	account.IsArchived = false
+	account.IsVerified = false
+	account.IsLocked = false
+	account.FailedAttempts = 0
 	return &account
 }
 
@@ -20,6 +22,8 @@ func getAccountMap() *map[string]interface{} {
 	expected["password"] = "password"
 	expected["is_archived"] = false
 	expected["is_verified"] = false
+	expected["is_locked"] = false
+	expected["failed_attempts"] = 0
 	return &expected
 }
 

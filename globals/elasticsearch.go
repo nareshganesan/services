@@ -422,6 +422,23 @@ func (g *Globals) GetAlias(index string) (*elastic.AliasesResult, error) {
 	return res, nil
 }
 
+// GetIndexesByAlias retrieves indexes for alias
+func (g *Globals) GetIndexesByAlias(alias string) ([]string, error) {
+	l := Gbl.Log
+	esCtx := context.Background()
+	res, err := g.ES.Aliases().Index("_all").Do(esCtx)
+	if err != nil {
+		return nil, err
+	}
+	indexes := res.IndicesByAlias(alias)
+	l.WithFields(logrus.Fields{
+		"indexes": indexes,
+		"alias":   alias,
+	}).Info("indexes retrieved for alias")
+	return indexes, nil
+
+}
+
 // DeleteAlias deletes the alias for the index
 func (g *Globals) DeleteAlias(index, alias string) bool {
 	isDeleted := false

@@ -89,6 +89,11 @@ func CreateTestIndex(mappingsFolder string) {
 		fmt.Printf("creating index: %s mappings: %s\n", index, path)
 		fmt.Printf("creating newindex: %s alias: %s\n", newindex, alias)
 		forceCreate := true
+		// Delete all existing indexes for alias
+		existingIndexes, _ := g.Gbl.GetIndexesByAlias(index)
+		for _, idx := range existingIndexes {
+			_ = g.Gbl.DeleteIndex(idx)
+		}
 		g.Gbl.CreateIndexFromJSON(newindex, path, forceCreate)
 		CreateAlias(newindex, alias, forceCreate)
 	}
