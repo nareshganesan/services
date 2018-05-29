@@ -36,13 +36,12 @@ install:
   # install golint
  - go get -u github.com/golang/lint/golint
  - go get github.com/modocache/gover
+ - dep ensure
 
 before_script:
   - sleep 10
 
 script:
-  # install dependencies using dep
-  - make get
   # build golang binary
   - make build
   # create elasticsearch index
