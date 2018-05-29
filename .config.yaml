@@ -14,9 +14,9 @@ env:
     - production
 
 database:
-  username: appUser
-  password: Services#2018
-  hostname: localhost
+  username: travis
+  password: 
+  hostname: "0.0.0.0"
   port: 3306
   dbname: services
   parameter: "?parseTime=true&interpolateParams=true"
@@ -32,7 +32,7 @@ es:
   gzip: true
   retries: 3
   urls:
-    - http://localhost:9200
+    - http://0.0.0.0:9200
     - http://127.0.0.1:9200
   index:
     accounts:
