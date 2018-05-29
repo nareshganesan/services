@@ -35,12 +35,21 @@ before_install:
 install:
   # install golint
  - go get -u github.com/golang/lint/golint
+ - go get github.com/modocache/gover
 
 before_script:
   - sleep 10
 
 script:
+  # install dependencies using dep
   - make get
+  # build golang binary
   - make build
+  # create elasticsearch index
   - make setup force=true
-  - make test
+  # Run the unit tests suite
+  - go test -v ./...
+  # Collect coverage reports
+  - go list -f '{{if len .TestGoFiles}}"go test -coverprofile={{.Dir}}/.coverprofile {{.ImportPath}}"{{end}}' ./... | xargs -i sh -c {}
+  # Merge coverage reports
+  - gover . coverprofile.txt
