@@ -34,7 +34,7 @@ before_install:
 
 install:
   # install golint
- - go get github.com/golang/lint/golint
+ - go get -u github.com/golang/lint/golint
 
 before_script:
   - sleep 10
