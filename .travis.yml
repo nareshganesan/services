@@ -1,0 +1,42 @@
+language: go
+
+services:
+  - elasticsearch
+  - mysql
+
+sudo: true
+
+go: 
+  - 1.8
+  - 1.9
+  - 1.10
+
+addons:
+  apt:
+    sources:
+      - mysql-5.7-trusty
+    packages:
+      - mysql-server
+      - mysql-client  
+
+env:
+  - DEP_VERSION="0.4.1"  
+
+before_install:
+  # Create MySQL database
+  - mysql -e 'CREATE DATABASE services;'
+  # Download and install ElasticSearch binary
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.1.deb && sudo dpkg -i --force-confnew elasticsearch-6.1.1.deb && sudo service elasticsearch restart
+  # Download the binary to bin folder in $GOPATH
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  # Make the binary executable
+  - chmod +x $GOPATH/bin/dep
+
+before_script:
+  - sleep 10
+
+script:
+  - make get
+  - make build
+  - make setup force=true
+  - make test
