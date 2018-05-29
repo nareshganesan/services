@@ -36,17 +36,21 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 	data := make(map[string]interface{})
 	if !account.Authenticate() {
 		adminEmail := g.Config.Owner.Email
-		if account.IsArchived {
-			data["message"] = fmt.Sprintf("Account archived! contact %s to unlock it", adminEmail)
+		if account.ID == "" {
+			data["message"] = "Invalid credentials!"
 		} else {
-			if !account.IsLocked {
-				if account.FailedAttempts == 5 {
-					data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
-				} else {
-					data["message"] = fmt.Sprintf("Invalid Credentials!, failed attempt:%d, maximum allowed:%d!", account.FailedAttempts, 5)
-				}
+			if account.IsArchived {
+				data["message"] = fmt.Sprintf("Account archived! contact %s to unlock it", adminEmail)
 			} else {
-				data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
+				if !account.IsLocked {
+					if account.FailedAttempts == 5 {
+						data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
+					} else {
+						data["message"] = fmt.Sprintf("Invalid Credentials!, failed attempt:%d, maximum allowed:%d!", account.FailedAttempts, 5)
+					}
+				} else {
+					data["message"] = fmt.Sprintf("Account locked! use forgot password link, to reset password! (reached maximum failed attempts!)")
+				}
 			}
 		}
 		data["error"] = "StatusUnauthorized!"

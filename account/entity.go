@@ -224,11 +224,13 @@ func (a *Entity) Authenticate() bool {
 				l.Info("Account is locked")
 			}
 		}
+		if existingAccount.ID != "" {
+			a.ID = existingAccount.ID
+			a.IsArchived = existingAccount.IsArchived
+			a.IsLocked = existingAccount.IsLocked
+			a.FailedAttempts = existingAccount.FailedAttempts
+		}
 	}
-	a.ID = existingAccount.ID
-	a.IsArchived = existingAccount.IsArchived
-	a.IsLocked = existingAccount.IsLocked
-	a.FailedAttempts = existingAccount.FailedAttempts
 	return isAuthenticated
 }
 
