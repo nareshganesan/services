@@ -2,7 +2,7 @@ package server
 
 import (
 	"flag"
-	// "fmt"
+	"fmt"
 	"github.com/DeanThompson/ginpprof"
 	"github.com/aviddiviner/gin-limit"
 	"os"
@@ -25,9 +25,11 @@ var (
 )
 
 // init sets runtime settings.
-func setup() {
+func setup() error {
 	// load app config details
-	g.LoadConfig()
+	if err := g.LoadConfig(); err != nil {
+		return err
+	}
 	// Configure Logrus application logger
 	g.ConfigureAPILogger()
 	g.ConfigureESLogger()
@@ -42,6 +44,7 @@ func setup() {
 	l.WithFields(logrus.Fields{
 		"cores": coresVal,
 	}).Info("No of cores")
+	return nil
 }
 
 func setEnv(env string) string {
@@ -78,23 +81,26 @@ func configCORS() cors.Config {
 // Serve method serves the services app api
 func Serve(port, env string) {
 	flag.Parse()
-	setup()
-	g.Config.CurrentEnv = setEnv(env)
-	// Set Gin to release mode
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.Use(cors.Middleware(configCORS()))
-	router.Use(limit.MaxAllowed(500))
-	// router.LoadHTMLFiles("static/*")
-	// router.LoadHTMLGlob("templates/*")
-	router.HandleMethodNotAllowed = true
-	// configure middlewares
-	configureMiddlewares(router)
-	// map api handlers
-	v1 := router.Group("/v1")
-	mapAPIHandlers(v1)
-	ginpprof.Wrap(router)
-	router.Run(":" + port)
+	if err := setup(); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		g.Config.CurrentEnv = setEnv(env)
+		// Set Gin to release mode
+		gin.SetMode(gin.ReleaseMode)
+		router := gin.Default()
+		router.Use(cors.Middleware(configCORS()))
+		router.Use(limit.MaxAllowed(500))
+		// router.LoadHTMLFiles("static/*")
+		// router.LoadHTMLGlob("templates/*")
+		router.HandleMethodNotAllowed = true
+		// configure middlewares
+		configureMiddlewares(router)
+		// map api handlers
+		v1 := router.Group("/v1")
+		mapAPIHandlers(v1)
+		ginpprof.Wrap(router)
+		router.Run(":" + port)
+	}
 }
 
 func configureMiddlewares(router *gin.Engine) {

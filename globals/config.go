@@ -1,9 +1,11 @@
 package globals
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"os"
+	"reflect"
 )
 
 // ownerInfo config entity
@@ -122,11 +124,38 @@ type yamlConfig struct {
 var Config yamlConfig
 
 // LoadConfig helper to load config entity
-func LoadConfig() {
+func LoadConfig() error {
 	fmt.Println("Loading configuration")
 	viper.Unmarshal(&Config)
 	Config.ProjectRoot = SetProjectHome()
 	// fmt.Println(Config)
+	return Config.ValidateESIndex()
+}
+
+func (cfg *yamlConfig) ValidateESIndex() error {
+	esIndex := cfg.ES.Index
+	fields := reflect.ValueOf(&esIndex).Elem()
+	// fieldType := fields.Type()
+	for i := 0; i < fields.NumField(); i++ {
+		// fieldName := fieldType.Field(i).Name
+		fieldValue := fields.Field(i).Interface()
+		switch index := fieldValue.(type) {
+		case accounts:
+			if index.Name == "" {
+				return errors.New("Config validation error!. Accounts index name cannot be empty!")
+			}
+			if index.DocType == "" {
+				return errors.New("Config validation error!. Accounts index doctype cannot be empty!")
+			}
+			if index.Name != "" && index.DocType != "" {
+				fmt.Println(fmt.Sprintf("Accounts: index: %s, doctype: %s", index.Name, index.DocType))
+			}
+		default:
+			fmt.Println("index type is unknown")
+			return errors.New("Configuration validation! Unkown index!")
+		}
+	}
+	return nil
 }
 
 // DSN returns the data source name for MySQL DB
