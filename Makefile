@@ -19,7 +19,7 @@ build: fmt lint vet
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GONAME) $(GOFILES)
 
 get:
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go get . ; dep ensure;
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) dep ensure;
 
 install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
@@ -71,4 +71,4 @@ clean:
 	@echo "Cleaning"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
-.PHONY: build get install run watch start stop restart clean
+.PHONY: setup build get install fmt lint vet test run watch start stop restart clear clean
