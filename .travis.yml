@@ -33,8 +33,9 @@ before_install:
   - chmod +x $GOPATH/bin/dep
 
 install:
+ - go get -t ./...  
   # install golint
- - go get -u golang.org/x/lint/golint
+ - go get github.com/golang/lint/golint
 
 before_script:
   - sleep 10
