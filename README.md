@@ -2,6 +2,8 @@
 
 Boiler plate golang micro services app built with Gin, ElasticSearch, MySQL, Cobra, Viper, Docker-compose
 
+[![Build Status](https://travis-ci.org/nareshganesan/services.svg?branch=dev)](https://travis-ci.org/nareshganesan/services)
+
 ### Features
 - [X] Modular request flow - 
   - [X] handlers
