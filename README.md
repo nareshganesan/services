@@ -10,7 +10,7 @@ Boiler plate golang micro services app built with Gin, ElasticSearch, MySQL, Cob
   - [X] validators
   - [X] usecases
   - [X] entity
-  - [ ] serialiser
+  - [X] serialiser
   - [X] response
 - [X] Authentication
 	- [ ] Social auth
@@ -23,7 +23,7 @@ Boiler plate golang micro services app built with Gin, ElasticSearch, MySQL, Cob
 - [X] Logging API - Logrus
 - [X] Unit + Integration testcase
 - [X] Code coverage
-- [ ] CI - Travis CI
+- [X] CI - Travis CI
 
 ### Tools
 - [X] Cobra command cli apps

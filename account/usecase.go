@@ -22,10 +22,13 @@ func SignupUsecase(ctx *gin.Context, account Entity) *shared.Response {
 			data["message"] = "BadRequest"
 			data["code"] = http.StatusBadRequest
 		} else {
-			data["email"] = account.Email
-			data["password"] = account.Password
 			data["id"] = id
 			data["code"] = http.StatusOK
+			serializer := Serializer{
+				ctx,
+				account,
+			}
+			data, _ = serializer.Dump(data)
 		}
 	}
 	return shared.GetResponse(ctx, data)
@@ -62,9 +65,13 @@ func LoginUsecase(ctx *gin.Context, account Entity) *shared.Response {
 			data["message"] = "StatusUnauthorized"
 			data["code"] = http.StatusBadRequest
 		} else {
-			data["account"] = account
 			data["code"] = http.StatusOK
 			data["token"] = token
+			serializer := Serializer{
+				ctx,
+				account,
+			}
+			data, _ = serializer.Dump(data)
 		}
 	}
 	return shared.GetResponse(ctx, data)
@@ -81,10 +88,13 @@ func UpdateAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
 	} else {
-		data["email"] = account.Email
-		data["password"] = account.Password
 		data["id"] = id
 		data["code"] = http.StatusOK
+		serializer := Serializer{
+			ctx,
+			account,
+		}
+		data, _ = serializer.Dump(data)
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -99,10 +109,13 @@ func DeleteAccountUsecase(ctx *gin.Context, account Entity) *shared.Response {
 		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
 	} else {
-		data["email"] = account.Email
-		data["password"] = account.Password
 		data["id"] = id
 		data["code"] = http.StatusOK
+		serializer := Serializer{
+			ctx,
+			account,
+		}
+		data, _ = serializer.Dump(data)
 	}
 	return shared.GetResponse(ctx, data)
 }
@@ -118,8 +131,12 @@ func ListAccountUsecase(ctx *gin.Context, account Entity, page, size int) *share
 		data["message"] = "BadRequest"
 		data["code"] = http.StatusBadRequest
 	} else {
-		data["accounts"] = accounts
 		data["code"] = http.StatusOK
+		serializer := ListSerializer{
+			ctx,
+			accounts,
+		}
+		data, _ = serializer.Dump(data)
 	}
 	return shared.GetResponse(ctx, data)
 }

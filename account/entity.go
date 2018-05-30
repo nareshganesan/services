@@ -124,9 +124,6 @@ func (a *Entity) List(page, size int, query elastic.Query) []Entity {
 				"error": err,
 			}).Error("Failed to unmarshal account result")
 		}
-		l.WithFields(logrus.Fields{
-			"account": *hit.Source,
-		}).Info("account details")
 		account.ID = hit.Id
 		accounts[idx] = account
 	}
